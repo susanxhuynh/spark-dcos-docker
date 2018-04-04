@@ -1,4 +1,4 @@
-FROM vishnumohan/spark-dcos
+FROM susanxhuynh/spark-dcos:executor-gpus
 
 ARG CONDA_ENV_YML="spark-root-conda-cudnn-env.yml"
 ARG NVIDIA_CUDA_MAJOR_VERSION="9-0"

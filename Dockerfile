@@ -24,7 +24,7 @@ ARG HADOOP_AWS_VERSION="2.7.5"
 ARG HADOOP_HDFS_HOME="/opt/hadoop"
 ARG HADOOP_MAJOR_VERSION="2.7"
 ARG HADOOP_SHA256="0bfc4d9b04be919be2fdf36f67fa3b4526cdbd406c512a7a1f5f1b715661f831"
-ARG HADOOP_URL="http://www-us.apache.org/dist/hadoop/common"
+ARG HADOOP_URL="http://apache.spinellicreations.com/hadoop/common"
 ARG HADOOP_VERSION="2.7.5"
 ARG JAVA_HOME="/opt/jdk"
 ARG JAVA_URL="https://downloads.mesosphere.com/java"
@@ -130,14 +130,17 @@ RUN cd /tmp \
     && echo "${MESOS_PROTOBUF_JAR_SHA1} mesos-${MESOS_VERSION}-shaded-protobuf.jar" | sha1sum -c - \
     && cd /tmp \
     && curl --retry 3 -fsSL -O "${DCOS_COMMONS_URL}/artifacts/${DCOS_COMMONS_VERSION}/bootstrap.zip" \
+    && echo "${DCOS_COMMONS_URL}/artifacts/${DCOS_COMMONS_VERSION}/bootstrap.zip" \
     && unzip "bootstrap.zip" -d "${MESOSPHERE_PREFIX}/bin/" \
     && curl --retry 3 -fsSL -O "${JAVA_URL}/server-jre-${JAVA_VERSION}-linux-x64.tar.gz" \
+    && echo "${JAVA_URL}/server-jre-${JAVA_VERSION}-linux-x64.tar.gz" \
     && tar xf "server-jre-${JAVA_VERSION}-linux-x64.tar.gz" -C "${JAVA_HOME}" --strip-components=1 \
     && curl --retry 3 -fsSL -O "${HADOOP_URL}/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz" \
     && echo "${HADOOP_SHA256}" "hadoop-${HADOOP_VERSION}.tar.gz" | sha256sum -c - \
     && tar xf "hadoop-${HADOOP_VERSION}.tar.gz" -C "${HADOOP_HDFS_HOME}" --strip-components=1 \
-    && curl --retry 3 -fsSL -O "${SPARK_DIST_URL}/assets/spark-${SPARK_VERSION}-bin-${HADOOP_MAJOR_VERSION}.tgz" \
-    && tar xf "spark-${SPARK_VERSION}-bin-${HADOOP_MAJOR_VERSION}.tgz" -C "${SPARK_HOME}" --strip-components=1 \
+    && curl --retry 3 -fsSL -O "http://xhuynh-dev.s3.amazonaws.com/spark-SNAPSHOT.tgz" \
+    && echo "http://xhuynh-dev.s3.amazonaws.com/spark-SNAPSHOT.tgz" \
+    && tar xf "spark-SNAPSHOT.tgz" -C "${SPARK_HOME}" --strip-components=1 \
     && cd "${SPARK_HOME}/jars" \
     && curl --retry 3 -fsSL -O "${AWS_JAVA_SDK_URL}/${AWS_JAVA_SDK_VERSION}/aws-java-sdk-${AWS_JAVA_SDK_VERSION}.jar" \
     && echo "${AWS_JAVA_SDK_JAR_SHA1} aws-java-sdk-${AWS_JAVA_SDK_VERSION}.jar" | sha1sum -c - \
