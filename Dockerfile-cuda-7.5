@@ -1,0 +1,58 @@
+FROM susanxhuynh/spark-dev:executor-gpus
+
+ARG NVIDIA_CUDA_MAJOR_VERSION="7-5"
+ARG NVIDIA_CUDA_VERSION="7.5"
+ARG NVIDIA_CUDA_TOOLS_GPG_KEY="7fa2af80"
+ARG NVIDIA_DISTRO="ubuntu1404"
+ARG NVIDIA_DRIVER_CAPABILITIES="compute,utility"
+ARG NVIDIA_REQUIRE_CUDA="cuda>=7.5"
+ARG NVIDIA_URL="http://developer.download.nvidia.com/compute"
+ARG NVIDIA_VISIBLE_DEVICES="all"
+ARG NVIDIA_VOLUMES_NEEDED="nvidia_driver"
+ARG GPG_KEYSERVER=hkps://zimmermann.mayfirst.org
+
+LABEL com.nvidia.volumes.needed=${NVIDIA_VOLUMES_NEEDED:-"nvidia_driver"} \
+      com.nvidia.cuda.version="${NVIDIA_CUDA_PKG_VERSION}" \
+      com.nvidia.cudnn.version="${NVIDIA_CUDNN_VERSION}"
+
+# Need to unset LD_LIBRARY_PATH first so that libraries in ${MESOSPHERE_PREFIX}/libmesos-bundle/lib don't interfere with apt
+RUN unset LD_LIBRARY_PATH \
+    && apt-get install wget \
+    && wget ${NVIDIA_URL}/cuda/repos/${NVIDIA_DISTRO}/x86_64/cuda-repo-ubuntu1404_7.5-18_amd64.deb \
+    && echo "got cuda.deb" \
+    && dpkg -i cuda-repo-ubuntu1404_7.5-18_amd64.deb \
+    && echo "dpkg" \
+    && apt-get update -yq --fix-missing \
+    && apt-get install -yq --no-install-recommends \
+       "cuda-cudart-${NVIDIA_CUDA_MAJOR_VERSION}" \
+       "cuda-cublas-${NVIDIA_CUDA_MAJOR_VERSION}" \
+       "cuda-cublas-dev-${NVIDIA_CUDA_MAJOR_VERSION}" \
+       "cuda-curand-${NVIDIA_CUDA_MAJOR_VERSION}" \
+       "cuda-curand-dev-${NVIDIA_CUDA_MAJOR_VERSION}" \
+    && rm cuda-repo-ubuntu1404_7.5-18_amd64.deb \
+    && echo "installed cuda" \
+    && cd /usr/local \
+    && ln -s "cuda-${NVIDIA_CUDA_VERSION}" cuda \
+    && echo "linking /usr/local" \
+    && cd cuda-"${NVIDIA_CUDA_VERSION}/targets/x86_64-linux/lib" \
+    && ln -s stubs/libcuda.so libcuda.so.1 \
+    && echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf \
+    && echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf \
+    && ldconfig \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN cd /lib \
+    && wget http://www.jcuda.org/downloads/JCuda-All-0.7.5-bin-linux-x86_64.zip \
+    && unzip JCuda-All-0.7.5-bin-linux-x86_64.zip \
+    && rm JCuda-All-0.7.5-bin-linux-x86_64.zip \
+    && cd JCuda-All-0.7.5-bin-Linux-x86_64/ \
+    && mv *.so *.a ..
+
+ENV NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-"all"} \
+    NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:-"compute,utility"} \
+    NVIDIA_REQUIRE_CUDA=${NVIDIA_REQUIRE_CUDA:-"cuda>=7.5"} \
+    PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH} \
+    LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
+
+WORKDIR /opt/spark/dist
