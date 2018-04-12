@@ -27,11 +27,9 @@ RUN unset LD_LIBRARY_PATH \
        "cuda-${NVIDIA_CUDA_MAJOR_VERSION}" \
     && rm cuda-repo-ubuntu1404_7.5-18_amd64.deb \
     && echo "installed cuda" \
-    && cd /usr/local \
-    && ln -s "cuda-${NVIDIA_CUDA_VERSION}" cuda \
-    && echo "linking /usr/local" \
-    && cd cuda-"${NVIDIA_CUDA_VERSION}/targets/x86_64-linux/lib" \
+    && cd /usr/local/cuda/lib64 \
     && ln -s stubs/libcuda.so libcuda.so.1 \
+    && echo "linking /usr/local" \
     && echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf \
     && echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf \
     && ldconfig \
